@@ -57,7 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @WebServlet
 @RestController
-public class ProcController {
+public class ProxyController {
     
     @RequestMapping(value="/**")
     public String proxy(HttpServletRequest request, @RequestBody String requestBody ) throws IOException, URISyntaxException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
@@ -91,7 +91,7 @@ public class ProcController {
         
         http = new HttpPut(uriBuilder.build().toString());
         
-    } else if ( HttpMethod.PATCH.matches(request.getMethod()) ) { 
+    } else if ( HttpMethod.PATCH.matches(request.getMethod()) ) {
         
         http = new HttpPatch(uriBuilder.build().toString());
     }
@@ -133,8 +133,8 @@ public class ProcController {
                                                               public boolean isTrusted(X509Certificate[] paramArrayOfX509Certificate, String paramString) throws CertificateException {
                                                                  return true;
                                                               }
-                                                          }).build();;            
-    
+                                                          }).build();
+                                                          
     httpClientBuilder.setSSLHostnameVerifier(new NoopHostnameVerifier()).setSSLContext(sslcontext);
     
      CloseableHttpClient      client      = httpClientBuilder.build();

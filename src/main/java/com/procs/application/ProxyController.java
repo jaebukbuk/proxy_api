@@ -19,15 +19,12 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import javax.net.ssl.SSLContext;
-import javax.servlet.ServletInputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -43,6 +40,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.procs.application.service.ProxyService;
 
 /**
  * @ClassName    : ProcController
@@ -59,6 +57,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ProxyController {
     
+    /**
+     * 1. 받은 요청 파악 - http method, 유효성
+     * 3. 대신 송신 http 생성
+     * 4. 대신 송신 http 송신
+     * 5. 받은 http 전달
+     */
+    private final ProxyService    proxyService;
+    
+    public ProxyController ( ProxyService proxyService ) {
+        this.proxyService  = proxyService;
+    }
+    
     @RequestMapping(value="/**")
     public String proxy(HttpServletRequest request, @RequestBody String requestBody ) throws IOException, URISyntaxException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
      
@@ -73,13 +83,12 @@ public class ProxyController {
     if ( HttpMethod.GET.matches(request.getMethod()) ) {
         
         uriBuilder.setQuery(request.getQueryString());
-        http = new HttpGet(URLDecoder.decode(uriBuilder.build().toString(), "UTF-8") );
+        http = new HttpGet( URLDecoder.decode(uriBuilder.build().toString(), "UTF-8") );
         
         System.out.println("rq 메소드 : " + request.getMethod() + "- 변경 get : " + URLDecoder.decode(uriBuilder.build().toString(), "UTF-8"));
     
     } else if ( HttpMethod.POST.matches(request.getMethod()) ) {
         
-        if( request.getQueryString() != null) uriBuilder.setQuery(request.getQueryString());
         
         http = new HttpPost(uriBuilder.build().toString());
         ((HttpPost)http).setEntity( new StringEntity( StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8) ) );
@@ -87,13 +96,6 @@ public class ProxyController {
         System.out.println("rq 메소드  : " + request.getMethod() + "변경 post : " + uriBuilder.build().toString());
         System.out.println("rq Body : " + StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8) );
         
-    } else if ( HttpMethod.PUT.matches(request.getMethod()) ) {
-        
-        http = new HttpPut(uriBuilder.build().toString());
-        
-    } else if ( HttpMethod.PATCH.matches(request.getMethod()) ) {
-        
-        http = new HttpPatch(uriBuilder.build().toString());
     }
     
     
@@ -119,6 +121,7 @@ public class ProxyController {
              }
         }
      }
+     
      http.setHeader("content-type" , "application/json;charset=UTF-8");
      http.setHeader("authorization", "Bearer 5d5b2cb498f3d20001665f4e86eac657a1774c9c803180eac4de0f54");
      
@@ -151,4 +154,10 @@ public class ProxyController {
      
      return str;   
     }
+    
+    private String rqPost() {
+        
+        return "";
+    }
+   
 }

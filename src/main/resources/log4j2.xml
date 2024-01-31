@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration>
+	<Properties>
+		<Property name="logLayout">[%d{yyyy-MM-dd HH:mm:ss.SSS}] - %m%n</Property>
+	</Properties>
+
+	<Appenders>
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="${logLayout}" />
+		</Console>
+	</Appenders>
+
+	<Loggers>
+		<Root level="INFO">
+			<AppenderRef ref="console" />
+		</Root>
+	</Loggers>
+
+</Configuration>

@@ -8,28 +8,18 @@
  */
 package com.procs.application.service.impl;
 
-import java.nio.charset.StandardCharsets;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Enumeration;
-import javax.net.ssl.SSLContext;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-import org.springframework.util.StreamUtils;
-import com.procs.application.ProxyHttp;
+import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import com.procs.application.service.ProxyService;
+import com.procs.application.service.domain.ProxyCloseableHttpClient;
+import com.procs.application.service.domain.ProxyGetHttp;
+import com.procs.application.service.domain.ProxyHttpClient;
+import com.procs.application.service.domain.ProxyPostHttp;
 
 /**
  * @ClassName    : proxyServiceImpl
@@ -42,97 +32,70 @@ import com.procs.application.service.ProxyService;
  *   2024.01.24       Hhome            최초생성
  * </pre>
  */
+@Service
 public class ProxyServiceImpl implements ProxyService {
     
+    private final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(getClass());
+    
     @Override
-    public void doPost(HttpServletRequest request) {
+    public String doPost(HttpServletRequest request) {
 
         String rtn = "";
         
         try {
             
-            ProxyHttp         proxyHttp  = new ProxyHttp();
-            proxyHttp = proxyHttp.getHttpPost(request, 5);
-            
-            // 헤더 작업
-            proxyHttp.setProxyHeaders(request);
+            ProxyHttpClient proxyHttpClient  = new ProxyHttpClient();
+            proxyHttpClient.setClientMethod     ( new ProxyPostHttp() );
+            proxyHttpClient.setProxyHttpConfig  ( request, 5          );
            
-            CloseableHttpClient client = this.getCloseableHttpClient();
+            CloseableHttpClient client = ( new ProxyCloseableHttpClient() ).getCloseableHttpClient();
             
             if( client != null ) {
                 
-                CloseableHttpResponse response = client.execute(http);
+                CloseableHttpResponse response = client.execute( proxyHttpClient.getProxyHttpRq() );
                 rtn = new String(EntityUtils.toString(response.getEntity(), "UTF-8"));
+                
+                LOGGER.info("* RS Info - StatusCode : " + String.valueOf(response.getStatusLine().getStatusCode()) );
+                LOGGER.info("* RS Info - httpBody   : " +  rtn );
             }
             
-
         } catch (Exception e) {
-            
+            e.printStackTrace();
+            rtn = "요청처리중 오류가 발생했습니다.";
         }
+            
+        return rtn;
     }
 
     @Override
-    public void doGet() {
-        // TODO Auto-generated method stub
+    public String doGet(HttpServletRequest request) {
         
-    }
-
-    @Override
-    public void doPut() {
-        // TODO Auto-generated method stub
-        
-    }
-    
-    public void setProxyHeaders(HttpServletRequest request, HttpRequestBase http) {
-        
-        // 헤더 작업
-        Enumeration<String> headerNames = request.getHeaderNames();
-        
-        while( headerNames.hasMoreElements() ) {
-            
-            String headerName = headerNames.nextElement().trim();
-            String headerValue = request.getHeader(headerName).trim();
-            
-           if("content-type".equals(headerNames) || "authorization".equals(headerNames) || "Authorization".equals(headerNames)) {
-                if(headerValue != null) {
-                    http.setHeader(headerName, headerValue);
-                    System.out.println(" headerName : "+ headerName + " headerValue : " + headerValue);
-                }
-           }
-        }   
-        
-    }
-    
-    public CloseableHttpClient getCloseableHttpClient() {
-       
-        CloseableHttpClient client;
+        String rtn = "";
         
         try {
             
-            HttpClientBuilder   httpClientBuilder = HttpClients.custom();
-            SSLContext          sslcontext        = SSLContexts.custom()
-                                                   .useProtocol("TLSv1.2")
-                                                   .loadTrustMaterial(null, new TrustStrategy() {
-                                                       @Override
-                                                       public boolean isTrusted(
-                                                               X509Certificate[] paramArrayOfX509Certificate,
-                                                               String paramString
-                                                       ) throws CertificateException {
-                                                           return true;
-                                                       }
-                                                   })
-                                                   .build();
-
-            httpClientBuilder.setSSLHostnameVerifier(new NoopHostnameVerifier())
-                             .setSSLContext(sslcontext);
+            ProxyHttpClient proxyHttpClient  = new ProxyHttpClient();
+            proxyHttpClient.setClientMethod     ( new ProxyGetHttp()  );
+            proxyHttpClient.setProxyHttpConfig  ( request, 5          );
+           
+            CloseableHttpClient client = ( new ProxyCloseableHttpClient() ).getCloseableHttpClient();
             
-            client = httpClientBuilder.build();
+            if( client != null ) {
+                
+                CloseableHttpResponse response = client.execute( proxyHttpClient.getProxyHttpRq() );
+                rtn = new String(EntityUtils.toString(response.getEntity(), "UTF-8"));
+            }
             
         } catch (Exception e) {
-            
-            client = null;
+            e.printStackTrace();
+            rtn = "요청처리중 오류가 발생했습니다.";
         }
         
-        return client;
+        return rtn;
+    }
+
+    @Override
+    public String doPut(HttpServletRequest request) {
+        return "미사용 Method 입니다.";
     }
 }

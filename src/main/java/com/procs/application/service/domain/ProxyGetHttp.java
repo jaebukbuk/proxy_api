@@ -8,15 +8,10 @@
  */
 package com.procs.application.service.domain;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
-import org.springframework.util.StreamUtils;
 
 /**
  * @ClassName    : proxyService
@@ -29,9 +24,8 @@ import org.springframework.util.StreamUtils;
  *   2024.01.24       Hhome            최초생성
  * </pre>
  */
-public class ProxyPostHttp extends ProxyHttp implements GetProxyHttp {
+public class ProxyGetHttp extends ProxyHttp implements GetProxyHttp {
     
-
     @Override
     public HttpRequestBase getProxyHttpRq() {
         
@@ -46,18 +40,12 @@ public class ProxyPostHttp extends ProxyHttp implements GetProxyHttp {
         super.port    =  request.getHeader("proxyPort")   != null ? Integer.parseInt(request.getHeader("proxyPort")) : super.DEFAULT_PROXY_PORT ;
         super.path    =  request.getRequestURI();
         
-        try {
-            super.strEntity    =  new StringEntity(StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            e.printStackTrace();
-        } 
     }
     
     @Override
     public void buildProxyHttp() throws Exception {
        
-        super.http = new HttpPost( ( new URIBuilder().setScheme(scheme).setHost(host).setPort(port).setPath(path) ).build().toString());
+        super.http = new HttpGet( ( new URIBuilder().setScheme(scheme).setHost(host).setPort(port).setPath(path) ).build().toString());
         
-        ((HttpPost)this.http).setEntity( super.strEntity );
     }
 }

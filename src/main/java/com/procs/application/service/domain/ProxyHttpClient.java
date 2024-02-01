@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.springframework.util.StreamUtils;
@@ -32,19 +33,37 @@ import org.springframework.util.StreamUtils;
  */
 public class ProxyHttpClient {
     
-    GetProxyHttp getProxyHttp;
+    private GetProxyHttp getProxyHttp;
     
-    public void setProxyHttp(HttpServletRequest request) {
-        
-        getProxyHttp.setProxyHttp(request);
+    public void setClientMethod(GetProxyHttp method) {
+        getProxyHttp = method;
     }
     
-    public void getProxyHttp() throws Exception {
+//    public void setProxyHttp(HttpServletRequest request) {
+//        
+//        getProxyHttp.setProxyHttp(request);
+//    }
+    
+//    public void setProxyHttpHeader(HttpServletRequest request) {
+//        
+//        getProxyHttp.setProxyHttpHeader(request);
+//    }
+    
+    public void buildProxyHttp() throws Exception {
        
-        getProxyHttp.getProxyHttp();
+        getProxyHttp.buildProxyHttp();
     }
 
-    public void setProxyHttpConfig(int seq) {
+    public void setProxyHttpConfig(HttpServletRequest request, int seq) throws Exception {
+        
+        getProxyHttp.setProxyHttp(request);
+        getProxyHttp.buildProxyHttp();
         getProxyHttp.setProxyHttpConfig(seq);
+        getProxyHttp.setProxyHttpHeader(request);
+    }
+    
+    public HttpRequestBase getProxyHttpRq() {
+        
+        return getProxyHttp.getProxyHttpRq();
     }
 }

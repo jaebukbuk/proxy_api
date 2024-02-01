@@ -9,6 +9,7 @@
 package com.procs.application.service.domain;
 
 import javax.servlet.http.HttpServletRequest;
+import org.apache.http.client.methods.HttpRequestBase;
 
 /**
  * @ClassName    : proxyService
@@ -23,7 +24,9 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface GetProxyHttp {
     
-    public void setProxyHttp(HttpServletRequest request);
-    public void getProxyHttp() throws Exception;
-    public void setProxyHttpConfig(int seq);
+    public void setProxyHttp        (HttpServletRequest request);
+    public void setProxyHttpHeader  (HttpServletRequest request);
+    public void buildProxyHttp      () throws Exception;
+    public void setProxyHttpConfig  (int seq);
+    public HttpRequestBase getProxyHttpRq();
 }

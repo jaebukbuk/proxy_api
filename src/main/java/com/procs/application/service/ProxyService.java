@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface ProxyService {
     
-    public void doPost(HttpServletRequest request);
-    public void doGet();
-    public void doPut();
+    public String doPost ( HttpServletRequest request );
+    public String doGet  ( HttpServletRequest request );
+    public String doPut  ( HttpServletRequest request );
 }

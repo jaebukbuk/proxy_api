@@ -8,19 +8,13 @@
  */
 package com.procs.application.service.domain;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
-import org.springframework.util.StreamUtils;
+import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @ClassName    : proxyHttp
@@ -35,18 +29,54 @@ import org.springframework.util.StreamUtils;
  */
 public class ProxyHttp {
     
+    private final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(getClass());
+        
     protected final String DEFAULT_PROXY_SCHEME = "https";
     protected final String DEFAULT_PROXY_HOST   = "test-openapi.lotteon.com";
     protected final int    DEFAULT_PROXY_PORT   = 443;
 
-    HttpRequestBase   http;
+    protected HttpRequestBase   http;
     
-    String scheme;
-    String host;   
-    int    port;   
-    String path;   
+    protected String scheme;
+    protected String host;   
+    protected int    port;   
+    protected String path;   
     
-    StringEntity strEntity;
+    protected StringEntity strEntity;
+    
+    public void setProxyHttpConfig(int seq) {
+        
+        this.http.setConfig(RequestConfig.custom().setSocketTimeout (seq * 10000)
+                 .setConnectTimeout                                 (seq * 10000)
+                 .setConnectionRequestTimeout                       (seq * 10000)
+                 .build());
+    }
+    
+    public void setProxyHttpHeader(HttpServletRequest request) {
+        
+        LOGGER.info("* Proxy Http Header Start");
+        
+        Enumeration<String> headerNames = request.getHeaderNames();
+
+        while (headerNames.hasMoreElements()) {
+
+            String headerName  =  headerNames.nextElement().trim();
+            String headerValue =  request.getHeader(headerName).trim();
+            
+            
+
+            if ( "content-type".equals(headerName) || "authorization".equals(headerName) || "Authorization".equals(headerName) ) {
+
+                if ( headerValue != null ) {
+                    
+                    this.http.setHeader(headerName, headerValue);
+                    LOGGER.info("* Proxy Http Header : headerName : " + headerName + " headerValue : " + headerValue);
+                }
+            }
+        }
+        
+        LOGGER.info("* Proxy Http Header End");
+    }
     
     /**
      * @return the strEntity
@@ -138,65 +168,4 @@ public class ProxyHttp {
     public int getDEFAULT_PROXY_PORT() {
         return DEFAULT_PROXY_PORT;
     }
-    
-    /*
-    public HttpRequestBase getHttpRequestBase() {
-        return this.http;
-    }
-    
-    public void setProxyHeaders(HttpServletRequest request) {
-
-        Enumeration<String> headerNames = request.getHeaderNames();
-
-        while (headerNames.hasMoreElements()) {
-
-            String headerName  =  headerNames.nextElement().trim();
-            String headerValue =  request.getHeader(headerName).trim();
-
-            if ( "content-type".equals(headerNames) || "authorization".equals(headerNames) || "Authorization".equals(headerNames) ) {
-
-                if (headerValue != null) {
-                    this.http.setHeader(headerName, headerValue);
-                    System.out.println(" headerName : " + headerName + " headerValue : " + headerValue);
-                }
-            }
-        }
-    }
-    
-    public ProxyHttp getHttpPost(HttpServletRequest request, int seq) throws URISyntaxException, UnsupportedEncodingException, IOException {
-        
-        String scheme  =  request.getHeader("proxyScheme") != null ? request.getHeader("proxyScheme")                 : DEFAULT_PROXY_SCHEME ;
-        String host    =  request.getHeader("proxyHhost")  != null ? request.getHeader("proxyHhost")                  : DEFAULT_PROXY_HOST ;
-        int    port    =  request.getHeader("proxyPort")   != null ? Integer.parseInt(request.getHeader("proxyPort")) : DEFAULT_PROXY_PORT ;
-        String path    =  request.getRequestURI();
-        
-        this.http = new HttpPost( ( new URIBuilder().setScheme(scheme).setHost(host).setPort(port).setPath(path) ).build().toString());
-        
-        ((HttpPost)this.http).setEntity( new StringEntity(StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8)));
-        
-        this.http.setConfig(RequestConfig.custom().setSocketTimeout            (seq * 10000)
-                                                  .setConnectTimeout           (seq * 10000)
-                                                  .setConnectionRequestTimeout (seq * 10000)
-                                                  .build());
-        
-        return this;
-    }
-    
-    public ProxyHttp getHttpGet(HttpServletRequest request, int seq) throws URISyntaxException, UnsupportedEncodingException, IOException {
-        
-        String scheme  =  request.getHeader("proxyScheme") != null ? request.getHeader("proxyScheme")                 : DEFAULT_PROXY_SCHEME ;
-        String host    =  request.getHeader("proxyHhost")  != null ? request.getHeader("proxyHhost")                  : DEFAULT_PROXY_HOST ;
-        int    port    =  request.getHeader("proxyPort")   != null ? Integer.parseInt(request.getHeader("proxyPort")) : DEFAULT_PROXY_PORT ;
-        String path    =  request.getRequestURI();
-        
-        this.http = new HttpGet( ( new URIBuilder().setScheme(scheme).setHost(host).setPort(port).setPath(path) ).build().toString());
-        
-        this.http.setConfig(RequestConfig.custom().setSocketTimeout            (seq * 10000)
-                                                  .setConnectTimeout           (seq * 10000)
-                                                  .setConnectionRequestTimeout (seq * 10000)
-                                                  .build());
-        
-        return this;
-    }
-    */
 }
